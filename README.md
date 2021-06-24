@@ -1,6 +1,6 @@
 # MakeMeAnAdmin
 
-Script to elevate priviliges. Also creates a launchd to demote all admins that are not on the line 155. Adjust line 155 based on your needs.
+Script to elevate priviliges. Also creates a launchd to demote all admins that are not on the line 155. Adjust line 155 based on your needs. Designed to run in Jamf Self Service.
 
 Examples line 155 where specific accounts will be skipped
 Skip root user demotion and any user starting with "_"
