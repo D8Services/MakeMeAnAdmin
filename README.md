@@ -3,11 +3,11 @@
 Script to elevate priviliges. Also creates a launchd to demote all admins that are not on the line 155. Adjust line 155 based on your needs.
 Example
 # Skip root user demotion and any user starting with "_"
-for q in ${GRPMembers[@]};do
+`for q in ${GRPMembers[@]};do
 if [[ $q != "root" ]]&&[[ $q != "_"* ]];then
 echo "Delete $q from Admin Group."
 /usr/sbin/dseditgroup -o edit -d $q -t user admin
-fi
+fi`
 
 # Skip root user demotion and any user starting with "_" and ladmin user
 for q in ${GRPMembers[@]};do
