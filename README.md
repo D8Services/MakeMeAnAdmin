@@ -25,4 +25,4 @@ Text Output File: /tmp/Icon.txt
 
 base64 can be used via Terminal and the output can be sent to a new text file using
 
-base64 /tmp/Icon.png > /tmp/Icon.txt
+`base64 /tmp/Icon.png > /tmp/Icon.txt`
