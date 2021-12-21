@@ -19,6 +19,8 @@
 # 2.5 - Tomos Tyler 2020, Altered the demotion of the Admin Users from one user to all users.
 # 2.6 - Tomos Tyler 2020, Altered the removal of the LaunchD and Script.
 # 2.7 - Tomos Tyler April 2020, altered script to allow minutes to be set via parameter.
+# 2.8 - Tomos Tyler Oct 2021, changed the pref file to a plst
+# 2.9 - needs to be updated for currentUser to not use python and logo to allow path from Parameter
 
 #############################################
 # find the logged in user and let them know #
@@ -99,20 +101,20 @@ rm /Library/LaunchDaemons/removeAdmin.plist
 fi
 
 #Create the plist
-sudo defaults write /Library/LaunchDaemons/removeAdmin.plist Label -string "removeAdmin"
+defaults write /Library/LaunchDaemons/removeAdmin.plist Label -string "removeAdmin"
 
 #Add program argument to have it run the update script
-sudo defaults write /Library/LaunchDaemons/removeAdmin.plist ProgramArguments -array -string /bin/sh -string "/Library/Application Support/JAMF/removeAdminRights.sh"
+defaults write /Library/LaunchDaemons/removeAdmin.plist ProgramArguments -array -string /bin/sh -string "/Library/Application Support/JAMF/removeAdminRights.sh"
 
 #Set the run interval to run every xx mins
-sudo defaults write /Library/LaunchDaemons/removeAdmin.plist StartInterval -integer ${secondstoAllow}
+defaults write /Library/LaunchDaemons/removeAdmin.plist StartInterval -integer ${secondstoAllow}
 
 #Set run at load
-sudo defaults write /Library/LaunchDaemons/removeAdmin.plist RunAtLoad -boolean no
+defaults write /Library/LaunchDaemons/removeAdmin.plist RunAtLoad -boolean no
 
 #Set ownership
-sudo chown root:wheel /Library/LaunchDaemons/removeAdmin.plist
-sudo chmod 644 /Library/LaunchDaemons/removeAdmin.plist
+chown root:wheel /Library/LaunchDaemons/removeAdmin.plist
+chmod 644 /Library/LaunchDaemons/removeAdmin.plist
 
 #Load the daemon 
 launchctl load /Library/LaunchDaemons/removeAdmin.plist
@@ -122,12 +124,13 @@ sleep 10
 # make file for removal #
 #########################
 
-if [ ! -d /private/var/userToRemove ]; then
-	mkdir /private/var/userToRemove
-	echo $currentUser >> /private/var/userToRemove/user
-else
-	echo $currentUser >> /private/var/userToRemove/user
+if [ ! -d /Library/Management ]; then
+	mkdir -p /Library/Management
 fi
+#### New format using a plist ####
+defaults write /Library/Management/.com.d8services.removeAdminRights.plist removeUser "${currentUser}"
+defaults write /Library/Management/.com.d8services.removeAdminRights.plist MinutestoAllow "${MinutestoAllow}m"
+
 
 ##################################
 # give the user admin privileges #
@@ -143,8 +146,9 @@ fi
 
 cat << 'EOF' > /Library/Application\ Support/JAMF/removeAdminRights.sh
 #!/bin/sh
-if [[ -f /private/var/userToRemove/user ]]; then
-userToRemove=$(cat /private/var/userToRemove/user)
+userToRemove=$(defaults read /Library/Management/.com.d8services.removeAdminRights.plist removeUser)
+MinutestoAllow=$(defaults write /Library/Management/.com.d8services.removeAdminRights.plist MinutestoAllow)
+if [[ ${userToRemove} != "" ]]&&[[ ${MinutestoAllow} != "" ]];then
 echo "Removing $userToRemove's admin privileges"
 /usr/sbin/dseditgroup -o edit -d $userToRemove -t user admin
 rm -f /private/var/userToRemove/user
@@ -152,12 +156,12 @@ GRPMembers=$(dscl . read /Groups/admin GroupMembership | awk -F ": " '{print $NF
 saveIFS=$IFS
 IFS=$' '
 for q in ${GRPMembers[@]};do
-if [[ $q != "root" ]]&&[[ $q != "_"* ]];then
+if [[ $q != "root" ]]&&[[ $q != "_"* ]]&&[[ $q != "ladmin"* ]];then
 echo "Delete $q from Admin Group."
 /usr/sbin/dseditgroup -o edit -d $q -t user admin
 fi
 done
-log collect --last 30m --output /private/var/userToRemove/$userToRemove.logarchive
+log collect --last "${MinutestoAllow}" --output /private/var/userToRemove/$userToRemove.logarchive
 fi
 defaults write /Library/LaunchDaemons/removeAdmin.plist Disabled -bool true
 launchctl list | grep removeAdmin
