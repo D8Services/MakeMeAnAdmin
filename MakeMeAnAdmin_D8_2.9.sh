@@ -20,7 +20,9 @@
 # 2.6 - Tomos Tyler 2020, Altered the removal of the LaunchD and Script.
 # 2.7 - Tomos Tyler April 2020, altered script to allow minutes to be set via parameter.
 # 2.8 - Tomos Tyler Oct 2021, changed the pref file to a plst, correctly check for bootstrapping and 
-# disabling the plist
+# 	disabling the plist
+# 2.9 - Tomos Tyler Dec 2021, changed path to logo as optional else use the built in one, 
+# 	CurrentUser switched to using a bash 'stat' incase Apple takes away python
 
 #############################################
 # Parameters provided from Jamf		    #
