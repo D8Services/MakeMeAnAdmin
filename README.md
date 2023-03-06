@@ -1,6 +1,6 @@
 # MakeMeAnAdmin
 
-This is a heavily modified version of the Jamf Makemeanadmin script. 
+This is a heavily modified version of the Jamf MakeMeAnAdmin script. 
 
 The script is called and receives 4 strings from the Jamf server script parameters. Parameter 4 and 5 are the strings required by the end user. The idea is that a User may need Admin rights, so they will have to contact IT Support to obtain either Parameter 4 for temporary admin rights or parameter 4 and parameter 5 in order to obtain the perminant admin rights, i.e. revert the user to a full admin without a timer applied.
 
@@ -12,7 +12,7 @@ or
 
 `sh MakeMeAnAdmin.sh {mount point} {computer name} {username} "1234567890" "1234567890-=" "2" "/Library/Management/Logo.png"`
 
-Script to elevate priviliges. Also creates a launchd to demote **all** admins that are not on the line 243. Adjust line 243 based on your needs. Designed to run in Jamf Self Service.
+Once the user has been elevated for a temporary admin use the script creates a launchd to demote **all** admins that are not on the line 243. Adjust line 243 based on your needs.
 
 Examples line 243 where specific accounts will be skipped
 Skip root user demotion and any user starting with "_"
