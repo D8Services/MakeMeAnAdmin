@@ -1,8 +1,8 @@
 # MakeMeAnAdmin
 
-Script to elevate priviliges. Also creates a launchd to demote all admins that are not on the line 155. Adjust line 155 based on your needs. Designed to run in Jamf Self Service.
+Script to elevate priviliges. Also creates a launchd to demote all admins that are not on the line 243. Adjust line 243 based on your needs. Designed to run in Jamf Self Service.
 
-Examples line 155 where specific accounts will be skipped
+Examples line 243 where specific accounts will be skipped
 Skip root user demotion and any user starting with "_"
 ```for q in ${GRPMembers[@]};do
   if [[ $q != "root" ]]&&[[ $q != "_"* ]];then
@@ -20,8 +20,8 @@ echo "Delete $q from Admin Group."
 fi
 ```
 
-# Line 28 The Logo
-The logo included here is used with all end user dialog. It is base64 encoded to be included within the script.
+# Line 47 The Logo
+The logo included here is used with all end user dialog. It is base64 encoded to be included within the script. You can remove this but you will have to use Parameter 7 for provide an image path.
 
 Example
 Image FileName: /tmp/Icon.png
@@ -31,4 +31,13 @@ base64 can be used via Terminal and the output can be sent to a new text file us
 
 `base64 /tmp/Icon.png > /tmp/Icon.txt`
 
-This can then be opened and copied to the MakeMeAnAdmin_D8 Script and pasted into parameter "theLogo" on line 28
+This can then be opened and copied to the MakeMeAnAdmin_D8 Script and pasted into parameter "theLogo" on line 28 for hard coded or put a path in for parameter 7.
+
+# Parameters
+We assume you are using this script with Jamf, so we assume Parameters 1-3 are predefined.
+Parameter 4 - Temporary Password authority string
+Parameter 5 - Perminant Password authority string
+Parameter 6 - Time to Allow for Temporary admin rights
+Parameter 7 - Path to a company graphic
+
+
