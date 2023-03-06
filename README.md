@@ -10,7 +10,7 @@ Synopsis
 
 or
 
-`sh MakeMeAnAdmin.sh {mount point} {computer name} {username} "1234567890" "1234567890-=" "2" "/Library/Management/Logo.png"
+`sh MakeMeAnAdmin.sh {mount point} {computer name} {username} "1234567890" "1234567890-=" "2" "/Library/Management/Logo.png"`
 
 Script to elevate priviliges. Also creates a launchd to demote **all** admins that are not on the line 243. Adjust line 243 based on your needs. Designed to run in Jamf Self Service.
 
