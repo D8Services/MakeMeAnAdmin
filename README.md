@@ -34,10 +34,15 @@ base64 can be used via Terminal and the output can be sent to a new text file us
 This can then be opened and copied to the MakeMeAnAdmin_D8 Script and pasted into parameter "theLogo" on line 28 for hard coded or put a path in for parameter 7.
 
 # Parameters
+
 We assume you are using this script with Jamf, so we assume Parameters 1-3 are predefined.
+
 Parameter 4 - Temporary Password authority string
+
 Parameter 5 - Perminant Password authority string
+
 Parameter 6 - Time to Allow for Temporary admin rights
+
 Parameter 7 - Path to a company graphic
 
 
