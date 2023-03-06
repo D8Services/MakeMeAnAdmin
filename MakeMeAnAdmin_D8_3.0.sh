@@ -23,6 +23,7 @@
 # 	disabling the plist
 # 2.9 - Tomos Tyler Dec 2021, changed path to logo as optional else use the built in one, 
 # 	CurrentUser switched to using a bash 'stat' incase Apple takes away python
+# 3..0 - Tomos Tyler Mar 2023, Check correctly for the Daemon
 
 #############################################
 # Parameters provided from Jamf		    #
@@ -150,10 +151,55 @@ defaults write "${launchDaemonPath}" RunAtLoad -boolean no
 chown root:wheel "${launchDaemonPath}"
 chmod 644 "${launchDaemonPath}"
 
+# Debug
+#defaults write "${launchDaemonPath}" StandardErrorPath "/tmp/${daemon}".err"
+#defaults write "${launchDaemonPath}" StandardOutPath "/tmp/${daemon}.out"
+
+
 #Load the daemon 
-launchctl load "${launchDaemonPath}"
-echo "Current Status - $?"
-sleep 1
+if launchctl list "$daemon" > /dev/null 2>&1; then
+	echo "Restarting $daemon"
+	date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon loaded, restarting"
+	launchctl bootout system "${launchDaemonPath}"
+	sleep 1
+	if launchctl bootstrap system "${launchDaemonPath}"; then
+		echo "$daemon restarted successfully"
+		date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon restarted successfully"
+	else
+		echo "$daemon did not restart successfully. Error: $?"
+		date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon did not restart successfully. Error: $?"
+		if launchctl start "${launchDaemonPath}"; then
+			echo "$daemon restarted successfully"
+			date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon restarted successfully"
+		else
+			launchctl load -w "${launchDaemonPath}"
+			if launchctl list "$daemon" > /dev/null 2>&1; then
+				echo "$daemon restarted successfully"
+				date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon restarted successfully"
+			fi
+		fi
+	fi
+else
+	echo "Starting $daemon"
+	date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon not loaded, loading"
+	if launchctl bootstrap system "${launchDaemonPath}"; then
+		echo "$daemon restarted successfully"
+		date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon restarted successfully"
+	else
+		echo "$daemon did not restart successfully. Error: $?"
+		date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon did not restart successfully. Error: $?"
+		if launchctl start "${launchDaemonPath}"; then
+			echo "$daemon restarted successfully"
+			date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon restarted successfully"
+		else
+			launchctl load -w "${launchDaemonPath}"
+			if launchctl list "$daemon" > /dev/null 2>&1; then
+				echo "$daemon started successfully"
+				date +"%a %b %d %H:%M:%S [makeMeAnAdmin] $daemon restarted successfully"
+			fi
+		fi
+	fi
+fi
 
 #############################
 # make preffile for removal #
@@ -166,6 +212,7 @@ fi
 defaults write "${preferenceFilePath}" removeUser "${currentUser}"
 defaults write "${preferenceFilePath}" MinutestoAllow "${MinutestoAllow}m"
 defaults write "${preferenceFilePath}" launchDPath "${launchDaemonPath}"
+defaults write "${preferenceFilePath}" daemon "${daemon}"
 
 ##################################
 # give the user admin privileges #
@@ -180,10 +227,11 @@ defaults write "${preferenceFilePath}" launchDPath "${launchDaemonPath}"
 ########################################
 
 cat << 'EOF' > "${scriptPath}"
+#!/bin/sh
 userToRemove=$(defaults read "${1}" removeUser)
 MinutestoAllow=$(defaults read "${1}" MinutestoAllow)
-timeStamp=$(date +%T)
 launchDPath=$(defaults read "${1}" launchDPath)
+daemon=$(defaults read "${1}" daemon)
 if [[ ${userToRemove} != "" ]]&&[[ ${MinutestoAllow} != "" ]];then
 echo "Revoking $userToRemove's admin privileges"
 /usr/sbin/dseditgroup -o edit -d $userToRemove -t user admin
@@ -199,16 +247,16 @@ fi
 done
 #### Fix Log path to fall in line with main code
 #### Add date stamp
-log collect --last "${MinutestoAllow}" --output $(dirname "${launchDPath}")/${userToRemove}/.${timeStamp}.logarchive
+log collect --last "${MinutestoAllow}" --output $(dirname "${1}").logarchive
 fi
-baseName=$(basename ${launchDPath})
-noExtension=${baseName%.plist}
-
-launchctl list | grep removeAdmin
-if [[ $? = 0 ]];then
-launchctl disable system/"${noExtension}"
-launchctl bootout system/"${noExtension}"
+defaults write "${launchDPath}" Disabled -bool true
+if launchctl list | grep -q "$daemon"; then
+echo "$daemon detected, removing"
+launchctl bootout system "${launchDPath}"
+rm -f "${launchDPath}"
+else
+echo "$daemon not detected"
 fi
-rm "${launchDPath}"#;rm "$0"
+rm "$0"
 EOF
 exit 0
