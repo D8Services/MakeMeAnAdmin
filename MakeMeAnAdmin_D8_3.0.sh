@@ -136,7 +136,7 @@ if [[ -f "${launchDaemonPath}" ]];then
 fi
 
 #Create the plist
-defaults write "${launchDaemonPath}" daemonPath -string "removeAdmin"
+defaults write "${launchDaemonPath}" Label -string "removeAdmin"
 
 #Add program argument to have it run the update script
 defaults write "${launchDaemonPath}" ProgramArguments -array -string /bin/sh -string "${scriptPath}" -string "${preferenceFilePath}"
@@ -231,7 +231,7 @@ cat << 'EOF' > "${scriptPath}"
 userToRemove=$(defaults read "${1}" removeUser)
 MinutestoAllow=$(defaults read "${1}" MinutestoAllow)
 launchDPath=$(defaults read "${1}" launchDPath)
-daemon=$(defaults read "${1}" daemonPath)
+daemon=$(defaults read "${1}" Label)
 if [[ ${userToRemove} != "" ]]&&[[ ${MinutestoAllow} != "" ]];then
 echo "Revoking $userToRemove's admin privileges"
 /usr/sbin/dseditgroup -o edit -d $userToRemove -t user admin
